@@ -1,17 +1,25 @@
 <script setup>
   import { ref, onMounted } from 'vue';
   import api from '@/plugins/axios';
+  import Loading from 'vue-loading-overlay';
+  import { useGenreStore } from '@/stores/genre';
 
-  const genres = ref([]);
+const genreStore = useGenreStore();
 
-  onMounted(async () => {
-    const response = await api.get('genre/tv/list?language=pt-BR');
-    genres.value = response.data.genres;
-  });
+  const isLoading = ref(false);
+
+
+
+ onMounted(async () => {
+  isLoading.value = true;
+  await genreStore.getAllGenres('tv');
+  isLoading.value = false;
+});
 
   const tvShows = ref([]);
 
   const listShows = async (genreId) => {
+    isLoading.value = true;
       const response = await api.get('discover/tv', {
           params: {
               with_genres: genreId,
@@ -19,30 +27,40 @@
           }
       });
       tvShows.value = response.data.results
+      isLoading.value = false;
   };
+  const formatDate = (date) => new Date(date).toLocaleDateString('pt-BR');
 </script>
 <template>
   <h1>Programas de TV</h1>
   <ul class="genre-list">
-    <li
-    v-for="genre in genres"
-    :key="genre.id"
-    @click="listShows(genre.id)"
-    class="genre-item"
-  >
-    {{ genre.name }}
-  </li>
+   <li
+  v-for="genre in genreStore.genres"
+  :key="genre.id"
+  @click="listShows(genre.id)"
+  class="genre-item"
+>
+  {{ genre.name }}
+</li>
   </ul>
+  <loading v-model:active="isLoading" is-full-page />
   <div class="tvshow-list">
-  <div v-for="tvshow in tvshows" :key="tvshow.id" class="tvshow-card">
+  <div v-for="tvshow in tvShows" :key="tvshow.id" class="tvshow-card">
     <img
       :src="`https://image.tmdb.org/t/p/w500${tvshow.poster_path}`"
-      :alt="tvshow.title"
+      :alt="tvshow.name"
     />
     <div class="tvshow-details">
-      <p class="tvshow-title">{{ tvshow.title }}</p>
-      <p class="tvshow-release-date">{{ tvshow.release_date }}</p>
-      <p class="-genres">{{ tvshow.genre_ids }}</p>
+      <p class="tvshow-title">{{ tvshow.name }}</p>
+      <p class="tvshow-release-date">{{ formatDate(tvshow.first_air_date) }}</p>
+       <p class="tvshow-genres">
+        <span
+  v-for="genre_id in tvshow.genre_ids"
+  :key="genre_id"
+  @click="listShows(genre_id)"
+>
+  {{ genreStore.getGenreName(genre_id) }}
+</span></p>
     </div>
   </div>
 </div>
@@ -74,4 +92,79 @@
     background-color: #7d8a2e;
     box-shadow: 0 0 0.5rem #5d6424;
   }
+  .genre-list {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+  list-style: none;
+  margin-bottom: 2rem;
+}
+
+.genre-item {
+  background-color: #387250;
+  border-radius: 1rem;
+  padding: 0.5rem 1rem;
+  color: #fff;
+}
+
+.genre-item:hover {
+  cursor: pointer;
+  background-color: #4e9e5f;
+  box-shadow: 0 0 0.5rem #387250;
+}
+.tvshow-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.tvshow-card {
+  width: 15rem;
+  height: 30rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 0 0.5rem #000;
+}
+
+.tvshow-card img {
+  width: 100%;
+  height: 20rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 0.5rem #000;
+}
+
+.tvshow-details {
+  padding: 0 0.5rem;
+}
+
+.tvshow-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  line-height: 1.3rem;
+  height: 3.2rem;
+}
+.tvshow-genres {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.2rem;
+}
+
+.tvshow-genres span {
+  background-color: #748708;
+  border-radius: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.tvshow-genres span:hover {
+  cursor: pointer;
+  background-color: #455a08;
+  box-shadow: 0 0 0.5rem #748708;
+}
 </style>
