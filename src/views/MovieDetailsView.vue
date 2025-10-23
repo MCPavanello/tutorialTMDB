@@ -34,9 +34,11 @@ onMounted(async () => {
     <p>Produtoras</p>
     <div class="companies">
         <template v-for="company in movieStore.currentMovie.production_companies" :key="company.id">
-            <img v-if="company.logo_path" :src="`https://image.tmdb.org/t/p/w92${company.logo_path}`"
+            <div v-if="company.logo_path">
+            <img :src="`https://image.tmdb.org/t/p/w92${company.logo_path}`"
                 :alt="company.name" />
-            <p v-else>{{ company.name }}</p>
+            </div>
+            <div v-else><p>{{ company.name }}</p></div>
         </template>
     </div>
 </template>
