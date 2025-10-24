@@ -24,10 +24,9 @@
       />
 
       <div class="details">
-        <h1>Programa de Tv: {{ tvStore.currentTv.title }}</h1>
+        <h1>Programa de Tv: {{ tvStore.currentTv.name }}</h1>
         <p>{{ tvStore.currentTv.tagline }}</p>
         <p>{{ tvStore.currentTv.overview }}</p>
-        <p>Orçamento: ${{ tvStore.currentTv.budget }}</p>
         <p>Avaliação: {{ tvStore.currentTv.vote_average }}</p>
       </div>
     </div>
